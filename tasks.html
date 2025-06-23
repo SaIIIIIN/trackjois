@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+  <title>Мої активності</title>
+  <style>
+   
+    
+    /* Кнопка меню */
+    .menu-icon { 
+      position: fixed; 
+      top: 20px; 
+      left: 20px; 
+      width: 30px; 
+      cursor: pointer; 
+      z-index: 1100;
+      transition: transform 0.3s ease;
+    }
+    .menu-icon div { 
+      width: 100%; 
+      height: 4px; 
+      background: #000; 
+      margin: 6px 0; 
+      transition: all 0.3s ease;
+    }
+    
+    /* Анимация для открытия меню */
+    .menu-open .menu-icon {
+      transform: translateX(250px);
+    }
+    .menu-open .menu-icon div:nth-child(1) {
+      transform: rotate(45deg) translate(8px, 8px);
+    }
+    .menu-open .menu-icon div:nth-child(2) {
+      opacity: 0;
+    }
+    .menu-open .menu-icon div:nth-child(3) {
+      transform: rotate(-45deg) translate(8px, -8px);
+    }
+    
+    /* Боковая панель */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -280px;
+      width: 280px;
+      height: 100vh;
+      background: linear-gradient(135deg, #00796b, #004d40);
+      box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+      transition: left 0.3s ease;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    
+    .sidebar.open {
+      left: 0;
+    }
+    
+    .sidebar-header {
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 40px;
+      text-align: center;
+      padding: 20px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .sidebar-menu {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .sidebar-item {
+      padding: 15px 20px;
+      color: white;
+      text-decoration: none;
+      border-radius: 10px;
+      transition: background 0.2s ease;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .sidebar-item:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    
+    .sidebar-item.logout {
+      background: #c62828;
+      margin-top: auto;
+    }
+    
+    .sidebar-item.logout:hover {
+      background: #b71c1c;
+    }
+    
+    /* Overlay для закрытия меню */
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.5);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      z-index: 999;
+    }
+    
+    .overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    /* Основной контент */
+    .container {
+      min-height: 100vh;
+      padding: 80px 20px 20px;
+      transition: transform 0.3s ease;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    /* Сдвиг контента при открытом меню */
+    .menu-open .container {
+      transform: translateX(280px);
+    }
+    
+    .page-title {
+      font-size: 28px;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    
+    /* Картка активності с прогрессом */
+    .habit-item { 
+      display: flex; 
+      flex-direction: column;
+      background: #fff; 
+      border-radius: 12px; 
+      padding: 20px; 
+      margin-bottom: 16px; 
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: all 0.2s ease;
+    }
+    
+    .habit-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    }
+    
+    .habit-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    
+    .habit-name { 
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .edit-btn {
+      background: #2196f3;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s ease;
+    }
+
+    .edit-btn:hover {
+      background: #1976d2;
+    }
+    
+    .habit-days {
+      font-size: 14px;
+      color: #666;
+      background: #f0f0f0;
+      padding: 6px 12px;
+      border-radius: 16px;
+      margin-bottom: 12px;
+      display: inline-block;
+    }
+    
+    .progress-container {
+      margin-bottom: 12px;
+    }
+    
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      background: #e0e0e0;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #00796b, #4caf50);
+      border-radius: 5px;
+      transition: width 0.3s ease;
+    }
+    
+    .progress-text {
+      font-size: 14px;
+      color: #666;
+      text-align: right;
+      margin-top: 6px;
+    }
+    
+    .completion-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    
+    .complete-btn {
+      flex: 1;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    
+    .complete-btn.done {
+      background: #4caf50;
+      color: white;
+    }
+    
+    .complete-btn.skip {
+      background: #ff9800;
+      color: white;
+    }
+    
+    .complete-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .complete-btn.done:hover {
+      background: #45a049;
+    }
+    
+    .complete-btn.skip:hover {
+      background: #e68900;
+    }
+
+    .complete-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .complete-btn:disabled:hover {
+      transform: none;
+      box-shadow: none;
+    }
+
+    .loading {
+      text-align: center;
+      color: #666;
+      padding: 40px;
+      font-size: 16px;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #666;
+      padding: 60px 20px;
+      font-size: 16px;
+    }
+
+    .empty-state::before {
+      content: "📝";
+      display: block;
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Overlay -->
+  <div class="overlay" id="overlay"></div>
+  
+  <!-- Кнопка меню -->
+  <div class="menu-icon" onclick="toggleMenu()">
+    <div></div><div></div><div></div>
+  </div>
+
+  <!-- Боковая панель -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      TrackJoi
+    </div>
+    <div class="sidebar-menu">
+      <div class="sidebar-item">
+        📊 Статистика
+      </div>
+      <div class="sidebar-item">
+        ⚙️ Налаштування
+      </div>
+      <div class="sidebar-item">
+        🎯 Мої цілі
+      </div>
+      <div class="sidebar-item logout">
+        🚪 Вихід
+      </div>
+    </div>
+  </div>
+
+  <!-- Основной контент -->
+  <div class="container">
+    <h1 class="page-title">Мої активності</h1>
+    <div id="activityList" class="loading">
+      Завантаження активностей...
+    </div>
+  </div>
+
+  <script>
+    // Перемикання бокового меню
+    function toggleMenu() {
+      document.body.classList.toggle('menu-open');
+      document.querySelector('.sidebar').classList.toggle('open');
+      document.querySelector('.overlay').classList.toggle('active');
+    }
+
+    // Завантаження активностей з бекенду або localStorage
+    async function loadActivities() {
+      const token = localStorage.getItem('authToken');
+      
+      // Спробуємо завантажити з localStorage для тестування
+      const localActivities = JSON.parse(localStorage.getItem('activities') || '[]');
+      if (localActivities.length > 0) {
+        const formattedActivities = localActivities.map((activity, index) => ({
+          id: index,
+          name: activity.name,
+          progress: Math.round((activity.completedThisWeek || 0) / Math.max(activity.days?.length || 1, 1) * 100),
+          days_of_week: activity.days ? activity.days.join(', ') : 'Не задано',
+          completed_today: false
+        }));
+        renderActivities(formattedActivities);
+        return;
+      }
+
+      if (!token) {
+        // Якщо немає токена і немає локальних даних, показуємо демо
+        renderActivities(getDemoActivities());
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:3000/api/activities', {
+          headers: {
+            'Authorization': 'Bearer ' + token
+          }
+        });
+
+        if (!response.ok) throw new Error("Помилка при завантаженні активностей");
+
+        const activities = await response.json();
+        renderActivities(activities);
+      } catch (err) {
+        console.error(err);
+        // Показуємо демо-дані у випадку помилки
+        renderActivities(getDemoActivities());
+      }
+    }
+
+    // Демо-дані для тестування
+    function getDemoActivities() {
+      return [
+        {
+          id: 1,
+          name: "Ранкова зарядка",
+          progress: 75,
+          days_of_week: "Пн, Вт, Ср, Чт, Пт",
+          completed_today: false
+        },
+        {
+          id: 2,
+          name: "Читання книг",
+          progress: 60,
+          days_of_week: "Щодня",
+          completed_today: true
+        },
+        {
+          id: 3,
+          name: "Медитація",
+          progress: 40,
+          days_of_week: "Пн, Ср, Пт",
+          completed_today: false
+        }
+      ];
+    }
+
+    // Рендер активностей у DOM
+    function renderActivities(activities) {
+      const listContainer = document.getElementById('activityList');
+      if (!listContainer) return;
+
+      if (activities.length === 0) {
+        listContainer.innerHTML = '<div class="empty-state">У вас поки немає активностей.<br>Додайте нові через меню "Мої цілі"</div>';
+        return;
+      }
+
+      listContainer.innerHTML = '';
+
+      activities.forEach((activity, index) => {
+        const item = document.createElement('div');
+        item.className = 'habit-item';
+
+        const progressWidth = Math.min(Math.max(activity.progress || 0, 0), 100);
+        const isCompleted = activity.completed_today;
+
+        item.innerHTML = `
+          <div class="habit-header">
+            <div class="habit-name">${activity.name}</div>
+            <button class="edit-btn" onclick="editActivity(${index})">✏️ Редагувати</button>
+          </div>
+          <div class="habit-days">Повтор: ${activity.days_of_week}</div>
+          <div class="progress-container">
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: ${progressWidth}%"></div>
+            </div>
+            <div class="progress-text">${progressWidth}% виконано</div>
+          </div>
+          <div class="completion-buttons">
+            <button class="complete-btn done" onclick="completeActivity(${activity.id})" ${isCompleted ? 'disabled' : ''}>
+              ${isCompleted ? '✅ Виконано' : '✓ Виконати'}
+            </button>
+            <button class="complete-btn skip" onclick="skipActivity(${activity.id})" ${isCompleted ? 'disabled' : ''}>
+              ${isCompleted ? '⏭️ Пропущено' : '⏭ Пропустити'}
+            </button>
+          </div>
+        `;
+
+        listContainer.appendChild(item);
+      });
+    }
+
+    // Функція редагування активності
+    function editActivity(index) {
+      // Зберігаємо індекс активності для редагування
+      localStorage.setItem('editIndex', index);
+      // Переходимо на сторінку редагування
+      window.location.href = 'edit.html';
+    }
+
+    // Функція виконання активності
+    async function completeActivity(activityId) {
+      try {
+        const token = localStorage.getItem('authToken');
+        const response = await fetch(`http://localhost:3000/api/activities/${activityId}/complete`, {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          // Перезавантажуємо список активностей
+          loadActivities();
+        } else {
+          alert('Помилка при виконанні активності');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Помилка мережі');
+      }
+    }
+
+    // Функція пропуску активності
+    async function skipActivity(activityId) {
+      try {
+        const token = localStorage.getItem('authToken');
+        const response = await fetch(`http://localhost:3000/api/activities/${activityId}/skip`, {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          // Перезавантажуємо список активностей
+          loadActivities();
+        } else {
+          alert('Помилка при пропуску активності');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Помилка мережі');
+      }
+    }
+
+    // Запуск після завантаження DOM
+    document.addEventListener('DOMContentLoaded', () => {
+      loadActivities();
+
+      // Закриття меню при кліку на overlay
+      const overlay = document.querySelector('.overlay');
+      if (overlay) {
+        overlay.addEventListener('click', toggleMenu);
+      }
+    });
+  </script>
+</body>
+</html>
